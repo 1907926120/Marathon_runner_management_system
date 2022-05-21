@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ch">
+<head>
+    <meta charset="UTF-8">
+    <title>管理员信息</title>
+</head>
+<body>
+<div class="super-theme-example">
+    <div style="height: 500px;">
+        <table class="easyui-datagrid" id="dg2" ></table>
+    </div>
+</div>
+<style type="text/css">
+    .form-item {
+        margin-bottom: 15px;
+        width: 50%;
+        float: left;
+    }
+
+    .form-item label {
+        min-width: 72px;
+        display: inline-block;
+    }
+
+    .form-item input,
+    select {
+        width: 170px;
+    }
+</style>
+<script type="text/javascript">
+    var url;
+    $('#dg2').datagrid({
+        title:"管理员信息",
+        url:"adminDatagridList",
+        fit: true,                       //撑开
+        pagination: true,               //分页
+        fitColumns: true,               //自适应尺寸
+        rownumbers:true,
+        toolbar: '#tb2',
+        height: 400,
+        //hidden:'true'  隐藏
+        columns: [
+            [{
+                field: 'cb',
+                checkbox:true       //选框
+            },{
+                field: 'adminId',
+                title: '编号',
+                width: 40,
+                sortable: true
+            }, {
+                field: 'jobNo',
+                title: '工号',
+                width: 80,
+                align: 'center'
+            }, {
+                field: 'name',
+                title: '姓名',
+                width: 100,
+                align: 'center'
+            }, {
+                field: 'sex',
+                title: '性别',
+                width: 50,
+                align: 'center'
+            },  {
+                field: 'birthday',
+                title: '出生日期',
+                width: 100,
+                align: 'center'
+            },{
+                field: 'email',
+                title: '邮箱',
+                width: 100,
+                align: 'center'
+            }, {
+                field: 'userId',
+                title: '账号编号',
+                width: 50,
+                align: 'center',
+                hidden:'true'
+            }, {
+                field: 'userName',
+                title: '账号',
+                width: 100,
+                align: 'center'
+            },
+            //     {
+            //     field: 'password',
+            //     title: '密码',
+            //     width: 100,
+            //     align: 'center'
+            // },
+                {
+                field: 'synopses',
+                title: '个人简介',
+                width: 300,
+                align: 'center'
+            }]
+        ]
+    });
+    //查询功能
+    function adminSearch(){
+            $('#dg2').datagrid('load',{
+                //联系servlet的数据接收
+                jobNo:$('#s_jobNo').val(),
+                adminName:$('#s_adminName').val(),
+                sex:$('#s_sex').combobox("getValue"),
+                //bBirthday--eBirthday一个范围
+                //下拉框 日期控件取值
+                bBirthday:$('#s_bBirthday').datebox("getValue"),
+                eBirthday:$('#s_eBirthday').datebox("getValue"),
+                //本质取得是userId的值  经过后台sql操作 查到userName
+                userId:$('#s_userId').combobox("getValue")
+            });
+    }
+    function adminDelete() {
+        var selectedRows=$('#dg2').datagrid('getSelections');
+        if (selectedRows.length == 0) {
+            $.messager.alert("系统提示", "请选择要删除的数据！");
+            return;
+        }
+        var strIds = [];
+        for (var i = 0; i < selectedRows.length; i++) {
+            strIds.push(selectedRows[i].adminId);
+        }
+        var ids = strIds.join(",");
+        $.messager.confirm("系统提示", "您确定要删掉这<font color='#dc143c'>" + selectedRows.length + "</font>条数据吗？", function (r) {
+            if (r) {
+                $.post("adminDatagridDelete",{delIds:ids},function (result) {
+                    if (result.success) {
+                        $.messager.alert("系统提示", "您已成功删除<font color='#dc143c'>" + result.delNums + "</font>条数据！");
+                        $('#dg2').datagrid("reload");
+                    }else{
+                        $.messager.alert("系统提示" + result.errorMsg);
+                    }
+                },"json");
+            }
+        });
+    }
+    function openAdminAddDialog() {
+        $('#dlg2').dialog("open").dialog("setTitle","添加管理员信息");
+        url = "adminDatagridSave";
+    }
+
+    function openAdminModifyDialog() {
+        var selectedRows=$("#dg2").datagrid('getSelections');
+        if(selectedRows.length!=1){
+            $.messager.alert("系统提示","请选择一条要编辑的数据！");
+            return;
+        }
+        var row=selectedRows[0];
+        $("#dlg2").dialog("open").dialog("setTitle","编辑管理员信息");
+        //自动把row中的数据load进fm（form）中
+        $("#fm2").form("load",row);
+        //效率高
+        url="adminDatagridSave?adminId="+row.adminId;
+    }
+    function saveAdmin() {
+        $('#fm2').form("submit",{
+            url:url,
+            onSubmit: function () {
+                //验证userId 必须选取
+                if ($('#userId').combobox("getValue") == "") {
+                    $.messager.alert("系统提示", "请选择管理员账号");
+                    return false;
+                }
+                //验证sex 必须选取
+                if ($('#sex').combobox("getValue") == "") {
+                    $.messager.alert("系统提示", "请选择管理员性别");
+                    return false;
+                }
+                return $(this).form("validate");
+            },
+            success: function (result) {
+                if (result.errorMsg) {
+                    $.messager.alert("系统提示", result.errorMsg);
+                    return;
+                } else {
+                    $.messager.alert("系统提示", "操作成功");
+                    resetValue();
+                    $('#dlg2').dialog("close");
+                    $('#dg2').datagrid("reload");
+                }
+            }
+        });
+    }
+    function closeAdminDialog() {
+        $('#dlg2').dialog("close");
+        resetValue();
+    }
+    function resetValue() {
+        //input设置值
+        $('#jobNo').textbox('setValue',"");
+        $('#name').textbox('setValue',"");
+        //combobox、datebox需要用easyui实现
+        $('#sex').combobox("setValue","");
+        $('#birthday').datebox("setValue","");
+        $('#userId').combobox("setValue","");
+        $('#email').textbox('setValue',"");
+        $('#synopses').val("");
+    }
+</script>
+<!--toolbar部分-->
+<div id="tb2">
+    <div>
+        <a href="javascript:openAdminAddDialog()" class="easyui-linkbutton" iconCls="fa fa-plus" plain="true">添加</a>
+        <a href="javascript:openAdminModifyDialog()" class="easyui-linkbutton" iconCls="fa fa-edit" plain="true">修改</a>
+        <a href="javascript:adminDelete()" class="easyui-linkbutton" iconCls="fa fa-remove" plain="true">删除</a>
+    </div>
+    <div>
+        &nbsp;工号:&nbsp;
+        <input type="text" name="s_jobNo" id="s_jobNo" size="12"/>
+        &nbsp;姓名:&nbsp;
+        <input type="text" name="s_adminName" id="s_adminName" size="7"/>
+        &nbsp;性别:&nbsp;
+        <select  name="s_sex" id="s_sex" class="easyui-combobox" data-options="editable:false,panelHeight:null" style="width: 90px" >
+            <option value="" >请选择...</option>
+            <option value="男" >男</option>
+            <option value="女">女</option>
+        </select>
+        &nbsp;出生日期:&nbsp;
+        <input name="s_bBirthday" id="s_bBirthday" type="text" class="easyui-datebox" required="required" editable="true" size="15"/>->
+        <input name="s_eBirthday" id="s_eBirthday" type="text" class="easyui-datebox" required="required" editable="true" size="15"/>
+        &nbsp;账号:&nbsp;
+        <select  name="s_userId" id="s_userId" class="easyui-combobox"
+                 data-options="editable:false,panelHeight:null,
+                 valueField:'id',textField:'userName',url:'userComboList'" style="width: 90px" >
+        <!--异步操作  ajax操作从后台取数据  参考官网写法-->
+        <!--利用ajax添加键值对  请选择...-->
+        </select>
+        <a href="javascript:adminSearch()" class="easyui-linkbutton" iconCls="fa fa-search" plain="true">搜索</a>
+    </div>
+</div>
+<div id="dlg2" class="easyui-dialog" style="width:600px;height: 450px;padding:10px 20px" closed="true" buttons="#dlg2-buttons">
+    <!--    搞个表单，需要提交-->
+    <form id="fm2" method="post">
+        <div class="form-item">
+            <label for="jobNo" class="label-top">工号：</label>
+            <input name="jobNo" id="jobNo" class="easyui-validatebox easyui-textbox" prompt="请输入管理员工号" data-options="required:true,validType:'length[1,7]'"/>
+        </div>
+        <div class="form-item">
+            <label for="name" class="label-top">姓名：</label>
+            <input name="name" id="name" class="easyui-validatebox easyui-textbox" prompt="请输入管理员姓名" required="true"/>
+        </div>
+        <div class="form-item">
+            <label for="sex" class="label-top">性别：</label>
+            <select  name="sex" id="sex" class="easyui-combobox" data-options="editable:false,panelHeight:null" style="width: 90px" >
+                <option value="" >请选择...</option>
+                <option value="男" >男</option>
+                <option value="女">女</option>
+            </select>
+        </div>
+        <div class="form-item" >
+            <label for="birthday" class="label-top">出生日期：</label>
+            <input name="birthday" id="birthday" type="text" class="easyui-datebox" required="true" editable="false" />
+        </div>
+        <div class="form-item" style="padding-right: 20px">
+            <label for="userId" class="label-top" >账号：</label>
+            <select  name="userId" id="userId" class="easyui-combobox" data-options="editable:false,panelHeight:null,valueField:'id',textField:'userName',url:'userComboList'" style="width: 170px" >
+            </select>
+        </div>
+        <div class="form-item" style="padding-right: 20px">
+            <label for="email" class="label-top">邮箱：</label>
+            <input name="email" id="email" class="easyui-validatebox easyui-textbox" prompt="请输入管理员邮箱" validType="email"/>
+        </div>
+        <div class="form-item">
+            <label for="synopses" class="label-top">个人简介：</label>
+            <textarea rows="7" cols="50" name="synopses" id="synopses"></textarea>
+        </div>
+    </form>
+</div>
+<div id="dlg2-buttons">
+    <a href="javascript:saveAdmin()" class="easyui-linkbutton" iconCls="fa fa-check">保存</a>
+    <a href="javascript:closeAdminDialog()" class="easyui-linkbutton" iconCls="fa fa-close">关闭</a>
+</div>
+</body>
+</html>

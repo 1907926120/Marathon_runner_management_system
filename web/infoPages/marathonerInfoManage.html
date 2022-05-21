@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ch">
+<head>
+    <meta charset="UTF-8">
+    <title>运动员信息</title>
+</head>
+<body>
+<div class="super-theme-example">
+    <div style="height: 510px;">
+        <table class="easyui-datagrid" id="dg" >
+<!--            <thead>-->
+<!--            <tr>-->
+<!--                <th field="id" width="50" >编号</th>-->
+<!--                <th field="name" width="100">班级名称</th>-->
+<!--                <th field="sex" width="250">班级描述</th>-->
+<!--                <th field="foreignName" width="50">编号</th>-->
+<!--                <th field="nationality" width="100">班级名称</th>-->
+<!--                <th field="birthday" width="250">班级描述</th>-->
+<!--                <th field="stature" width="50">编号</th>-->
+<!--                <th field="weight" width="100">班级名称</th>-->
+<!--                <th field="awards" width="250" >班级描述</th>-->
+<!--            </tr>-->
+<!--            </thead>-->
+        </table>
+    </div>
+</div>
+
+<!--表单初始化设置-->
+<style type="text/css">
+    .form-item {
+        margin-bottom: 15px;
+        width: 50%;
+        float: left;
+    }
+
+    .form-item label {
+        min-width: 72px;
+        display: inline-block;
+    }
+
+    .form-item input,
+    select {
+        width: 170px;
+    }
+</style>
+<!--不能出现多个script块  bug-->
+<script type="text/javascript">
+    //添加功能需用到url地址
+    var url;
+
+    $('#dg').datagrid({
+        url:'marathonerDatagridList',      //关联servlet
+        title:'马拉松运动员信息',
+        fit: true,                       //撑开
+        pagination: true,               //分页
+        fitColumns: true,               //自适应尺寸
+        rownumbers:true,                //带序号
+        toolbar:'#tb',
+        // toolbar: [{
+        //     text: '添加',
+        //     iconCls: 'fa fa-plus',
+        //     // plain:true,          //  按钮变朴素
+        //     handler: function() {}
+        // }, {
+        //     text: '编辑',
+        //     iconCls: 'fa fa-edit',
+        //     handler: function() {}
+        // }, {
+        //     text: '保存',
+        //     iconCls: 'fa fa-save',
+        //     handler: function() {}
+        // },{
+        //     text: '删除',
+        //     iconCls: 'fa fa-remove',
+        //     handler: function() {}
+        // }],
+        height: 400,
+        columns: [
+            [{
+                field: 'cb',
+                checkbox:true       //选框
+            },{
+                field: 'id',
+                title: '编号',
+                width: 40,
+                sortable: true
+            }, {
+                field: 'name',
+                title: '姓名',
+                width: 100,
+                align: 'center'
+            }, {
+                field: 'sex',
+                title: '性别',
+                width: 50,
+                align: 'center'
+            }, {
+                field: 'foreignName',
+                title: '外文名',
+                width: 100,
+                align: 'center'
+            }, {
+                field: 'nationality',
+                title: '国籍',
+                width: 100,
+                align: 'center'
+            }, {
+                field: 'birthday',
+                title: '出生日期',
+                width: 100,
+                align: 'center'
+            }, {
+                field: 'stature',
+                title: '身高/cm',
+                width: 100,
+                align: 'center'
+            }, {
+                field: 'weight',
+                title: '体重/kg',
+                width: 100,
+                align: 'center'
+            },{
+                field: 'awards',
+                title: '所获荣誉',
+                width: 200,
+                align: 'center'
+            }]
+        ]
+    });
+
+    //查询功能
+    function marathonerNameSearch(){
+        // alert("yes");
+        //该方法被调用来从服务器加载新数据。
+        $('#dg').datagrid('load',{
+            //name为定义  传到后台用
+            name:$('#s_marathonerName').val()
+        });
+    }
+    //删除功能
+    function marathonerDelete() {
+        //返回所有选中的行，当没有选中的记录时，将返回空数组。  easyUi技术
+        //火狐可以在JavaScript中打断点调试
+        var selectedRows=$('#dg').datagrid('getSelections');
+        if (selectedRows.length == 0) {
+            $.messager.alert("系统提示", "请选择要删除的数据！");
+            return;
+        }
+        //封装一个数组
+        var strIds = [];
+        for (var i = 0; i < selectedRows.length; i++) {
+            strIds.push(selectedRows[i].id);
+        }
+        //JS 数组join方法  强大如斯
+        //获取数据
+        var ids = strIds.join(",");
+        // alert(ids);
+        $.messager.confirm("系统提示", "您确定要删掉这<font color='#dc143c'>" + selectedRows.length + "</font>条数据吗？", function (r) {
+            if (r) {
+                // alert("yes");
+                //联系servlet jQuery中ajax技术
+                $.post("marathonerDatagridDelete",{delIds:ids},function (result) {
+                    if (result.success) {
+                        // alert("delete ok ");
+                        $.messager.alert("系统提示", "您已成功删除<font color='#dc143c'>" + result.delNums + "</font>条数据！");
+                        //刷新 人性化
+                        $('#dg').datagrid("reload");
+
+                    }else{
+                        // alert("delete failure");
+                        $.messager.alert("系统提示" + result.errorMsg);
+                    }
+                },"json");
+            }
+        });
+    }
+
+    //对话框 添加功能
+    function openMarathonerAddDialog() {
+        $('#dlg1').dialog("open").dialog("setTitle","添加马拉松运动员信息");
+        url = "marathonerSave";
+    }
+    //修改功能
+    function openMarathonerModifyDialog(){
+        //用户选且只能选一条信息
+        var selectedRows=$("#dg").datagrid('getSelections');
+        if(selectedRows.length!=1){
+            $.messager.alert("系统提示","请选择一条要编辑的数据！");
+            return;
+        }
+        var row=selectedRows[0];
+        $("#dlg1").dialog("open").dialog("setTitle","编辑马拉松运动员信息");
+        //自动把row中的数据load进fm（form）中
+        $("#fm").form("load",row);
+        //效率高
+        //注意等号=
+        url="marathonerSave?id="+row.id;
+    }
+    // function openMarathonerModifyDialog() {
+    //     //用户选且只能选一条信息
+    //     var selectedRows=$('#dg').datagrid('getSelections');
+    //     if (selectedRows.length !== 1) {
+    //         $.messager.alert("系统提示", "请选择一条要编辑的数据！");
+    //         return;
+    //     }
+    //     //考虑到修改数据后会产生冗余数据，则引入删除功能
+    //     var selectedRows=$('#dg').datagrid('getSelections');
+    //     var strIds = [];
+    //     for (var i = 0; i < selectedRows.length; i++) {
+    //         strIds.push(selectedRows[i].id);
+    //     }
+    //     var ids = strIds.join(",");
+    //     $.messager.confirm("系统提示",
+    //         "您确定要修改这<font color='#dc143c'>" + selectedRows.length + "</font>条数据吗？继续操作有可能丢失该数据。" +
+    //         "<br/>若您不需要修改该数据，可点击保存。<font color='#dc143c'>若选择关闭，将会丢失该数据。</font>",
+    //         function (r) {
+    //         if (r) {
+    //             var row = selectedRows[0];
+    //
+    //             $.post("marathonerDatagridDelete",{delIds:ids},function (result) {
+    //                 if (result.success) {
+    //                     $('#dlg1').dialog("open").dialog("setTitle","编辑马拉松运动员信息");
+    //                     //自动把row中的数据load进fm（form）中
+    //                     $('#fm').form("load", row);
+    //                     //效率高
+    //                     url="marathonerSave?id"+row.id;
+    //                     //去掉刷新，不然会显得系统很傻
+    //                     // $('#dg').datagrid("reload");
+    //                 }else{
+    //                     $.messager.alert("系统提示" + result.errorMsg);
+    //                 }
+    //             },"json");
+    //         }
+    //     });
+    // }
+
+    //对话框 关闭功能
+    function closeMarathonerAddDialog() {
+        $('#dlg1').dialog("close");
+        resetValue();
+    }
+    //操作功能 对话框按钮
+    //easyui封装的方法
+    function saveMarathoner() {
+        $('#fm').form("submit",{
+            url:url,
+            onSubmit: function () {
+                //this指form那个对象
+                //如果表单必填信息为空，不予执行
+                return $(this).form("validate");
+            },
+            success: function (result) {
+                if (result.errorMsg) {
+                    $.messager.alert("系统提示", result.errorMsg);
+                    return;
+                } else {
+                    $.messager.alert("系统提示", "操作成功");
+                    resetValue();
+                    $('#dlg1').dialog("close");
+                    $('#dg').datagrid("reload");
+                }
+            }
+        });
+    }
+    
+    //更新数据为空
+    function resetValue() {
+        //一旦使用easyui方法  则jquery方法失效，其可能优先级较小
+        $('#name').textbox('setValue',"");
+        $('#sex').combobox("setValue","");
+        $('#foreignName').textbox('setValue',"");
+        $('#nationality').textbox('setValue',"");
+        $('#birthday').datebox("setValue","");
+        $('#stature').textbox('setValue',"");
+        $('#weight').textbox('setValue',"");
+        $('#awards').val("");
+    }
+</script>
+
+<!--toolbar部分-->
+<div id="tb">
+    <div>
+        <a href="javascript:openMarathonerAddDialog()" class="easyui-linkbutton" iconCls="fa fa-plus" plain="true">添加</a>
+        <a href="javascript:openMarathonerModifyDialog()" class="easyui-linkbutton" iconCls="fa fa-edit" plain="true">修改</a>
+        <a href="javascript:marathonerDelete()" class="easyui-linkbutton" iconCls="fa fa-remove" plain="true">删除</a>
+    </div>
+    <div>运动员姓名:&nbsp;
+        <input type="text" name="s_marathonerName" id="s_marathonerName"/>
+        <a href="javascript:marathonerNameSearch()" class="easyui-linkbutton" iconCls="fa fa-search" plain="true">搜索</a>
+    </div>
+</div>
+
+<!--padding上右下左-->
+<div id="dlg1" class="easyui-dialog" style="width:600px;height: 420px;padding:10px 20px" closed="true" buttons="#dlg1-buttons">
+<!--    搞个表单，需要提交-->
+    <form id="fm" method="post">
+        <div class="form-item">
+            <label for="name" class="label-top">姓名：</label>
+            <input name="name" id="name" class="easyui-validatebox easyui-textbox" prompt="请输入运动员姓名" data-options="required:true,validType:'length[1,9]'"/>
+        </div>
+        <div class="form-item">
+            <label for="sex" class="label-top">性别：</label>
+            <select  name="sex" id="sex" class="easyui-combobox" data-options="editable:false,panelHeight:null" style="width: 90px" >
+                <option value="" >请选择...</option>
+                <option value="男" >男</option>
+                <option value="女">女</option>
+            </select>
+        </div>
+        <div class="form-item">
+            <label for="foreignName" class="label-top">外文名：</label>
+            <input name="foreignName" id="foreignName" class="easyui-validatebox easyui-textbox" prompt="请输入运动员外文名" validType="length[1,20]"/>
+        </div>
+        <div class="form-item">
+            <label for="nationality" class="label-top">国籍：</label>
+            <input name="nationality" id="nationality" class="easyui-validatebox easyui-textbox" prompt="请输入运动员国籍"/>
+        </div>
+<!--        padding-right   令身高和体重在同一行-->
+        <div class="form-item" style="padding-right: 20px">
+            <label for="birthday" class="label-top">出生日期：</label>
+            <input name="birthday" id="birthday" type="text" class="easyui-datebox" required="required" editable="false" />
+        </div>
+
+        <div class="form-item">
+            <label for="stature" class="label-top">身高/cm：</label>
+            <input name="stature" id="stature" class="easyui-validatebox easyui-textbox" prompt="请输入运动员身高" required="required"/>
+        </div>
+        <div class="form-item">
+            <label for="weight" class="label-top">体重/kg：</label>
+            <input name="weight" id="weight" class="easyui-validatebox easyui-textbox" prompt="请输入运动员体重" required="required"/>
+        </div>
+        <div class="form-item">
+            <label for="awards" class="label-top">所获荣誉：</label>
+            <textarea rows="7" cols="50" name="awards" id="awards"></textarea>
+        </div>
+    </form>
+</div>
+<div id="dlg1-buttons">
+    <a href="javascript:saveMarathoner()" class="easyui-linkbutton" iconCls="fa fa-check">保存</a>
+    <a href="javascript:closeMarathonerAddDialog()" class="easyui-linkbutton" iconCls="fa fa-close">关闭</a>
+</div>
+</body>
+</html>

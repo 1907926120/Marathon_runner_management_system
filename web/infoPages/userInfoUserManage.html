@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ch">
+<head>
+    <meta charset="UTF-8">
+    <title>用户信息</title>
+</head>
+<body>
+<div class="super-theme-example">
+    <div style="height: 500px;">
+        <table class="easyui-datagrid" id="dg3" ></table>
+    </div>
+</div>
+<style type="text/css">
+    .form-item {
+        margin-bottom: 15px;
+        width: 50%;
+        float: left;
+    }
+
+    .form-item label {
+        min-width: 72px;
+        display: inline-block;
+    }
+
+    .form-item input,
+    select {
+        width: 170px;
+    }
+</style>
+<script type="text/javascript">
+    var url;
+    $('#dg3').datagrid({
+        title:"用户信息",
+        url:"userDatagridList",
+        fit: true,                       //撑开
+        pagination: true,               //分页
+        fitColumns: true,               //自适应尺寸
+        rownumbers:true,
+        toolbar: '#tb3',
+        height: 400,
+        //hidden:'true'  隐藏
+        columns: [
+            [{
+                field: 'userId',
+                title: '编号',
+                width: 40,
+                sortable: true
+            }, {
+                field: 'jobNo',
+                title: '工号',
+                width: 80,
+                align: 'center'
+            }, {
+                field: 'name',
+                title: '姓名',
+                width: 100,
+                align: 'center'
+            }, {
+                field: 'sex',
+                title: '性别',
+                width: 50,
+                align: 'center'
+            },  {
+                field: 'birthday',
+                title: '出生日期',
+                width: 100,
+                align: 'center'
+            },{
+                field: 'email',
+                title: '邮箱',
+                width: 100,
+                align: 'center'
+            }, {
+                field: 'user2Id',
+                title: '账号编号',
+                width: 50,
+                align: 'center',
+                hidden:'true'
+            }, {
+                field: 'userName',
+                title: '账号',
+                width: 100,
+                align: 'center'
+            },
+                {
+                field: 'synopses',
+                title: '个人简介',
+                width: 300,
+                align: 'center'
+            }]
+        ]
+    });
+    //查询功能
+    function userSearch(){
+            $('#dg3').datagrid('load',{
+                jobNo:$('#s_jobNo').val(),
+                user2Name:$('#s_userName').val(),
+                sex:$('#s_sex').combobox("getValue"),
+                bBirthday:$('#s_bBirthday').datebox("getValue"),
+                eBirthday:$('#s_eBirthday').datebox("getValue"),
+                user2Id:$('#s_user2Id').combobox("getValue")
+            });
+    }
+</script>
+<!--toolbar部分-->
+<div id="tb3">
+    <div>
+        &nbsp;工号:&nbsp;
+        <input type="text" name="s_jobNo" id="s_jobNo" size="12"/>
+        &nbsp;姓名:&nbsp;
+        <input type="text" name="s_userName" id="s_userName" size="7"/>
+        &nbsp;性别:&nbsp;
+        <select  name="s_sex" id="s_sex" class="easyui-combobox" data-options="editable:false,panelHeight:null" style="width: 90px" >
+            <option value="" >请选择...</option>
+            <option value="男" >男</option>
+            <option value="女">女</option>
+        </select>
+        &nbsp;出生日期:&nbsp;
+        <input name="s_bBirthday" id="s_bBirthday" type="text" class="easyui-datebox" required="required" editable="true" size="15"/>->
+        <input name="s_eBirthday" id="s_eBirthday" type="text" class="easyui-datebox" required="required" editable="true" size="15"/>
+        &nbsp;账号:&nbsp;
+        <select  name="s_user2Id" id="s_user2Id" class="easyui-combobox"
+                 data-options="editable:false,panelHeight:null,
+                 valueField:'id',textField:'userName',url:'userCombo2List'" style="width: 90px" >
+        <!--异步操作  ajax操作从后台取数据  参考官网写法-->
+        <!--利用ajax添加键值对  请选择...-->
+        </select>
+        <a href="javascript:userSearch()" class="easyui-linkbutton" iconCls="fa fa-search" plain="true">搜索</a>
+    </div>
+</div>
+</body>
+</html>

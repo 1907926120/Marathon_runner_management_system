@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ch">
+<head>
+    <meta charset="UTF-8">
+    <title>运动员信息</title>
+</head>
+
+<body>
+<div class="super-theme-example">
+    <div style="height: 510px;">
+        <table class="easyui-datagrid" id="dg" >
+        </table>
+    </div>
+</div>
+
+<!--表单初始化设置-->
+<style type="text/css">
+    .form-item {
+        margin-bottom: 15px;
+        width: 50%;
+        float: left;
+    }
+
+    .form-item label {
+        min-width: 72px;
+        display: inline-block;
+    }
+
+    .form-item input,
+    select {
+        width: 170px;
+    }
+</style>
+<!--不能出现多个script块  bug-->
+<script type="text/javascript">
+    //添加功能需用到url地址
+    var url;
+
+    $('#dg').datagrid({
+        url:'marathonerDatagridList',      //关联servlet
+        title:'马拉松运动员信息',
+        fit: true,                       //撑开
+        pagination: true,               //分页
+        fitColumns: true,               //自适应尺寸
+        rownumbers:true,                //带序号
+        toolbar:'#tb',
+
+        height: 400,
+        columns: [
+            [{
+                field: 'id',
+                title: '编号',
+                width: 40,
+                sortable: true
+            }, {
+                field: 'name',
+                title: '姓名',
+                width: 100,
+                align: 'center'
+            }, {
+                field: 'sex',
+                title: '性别',
+                width: 50,
+                align: 'center'
+            }, {
+                field: 'foreignName',
+                title: '外文名',
+                width: 100,
+                align: 'center'
+            }, {
+                field: 'nationality',
+                title: '国籍',
+                width: 100,
+                align: 'center'
+            }, {
+                field: 'birthday',
+                title: '出生日期',
+                width: 100,
+                align: 'center'
+            }, {
+                field: 'stature',
+                title: '身高/cm',
+                width: 100,
+                align: 'center'
+            }, {
+                field: 'weight',
+                title: '体重/kg',
+                width: 100,
+                align: 'center'
+            },{
+                field: 'awards',
+                title: '所获荣誉',
+                width: 200,
+                align: 'center'
+            }]
+        ]
+    });
+
+    //查询功能
+    function marathonerNameSearch(){
+        $('#dg').datagrid('load',{
+            //name为定义  传到后台用
+            name:$('#s_marathonerName').val()
+        });
+    }
+</script>
+
+<!--toolbar部分-->
+<div id="tb">
+    <div>运动员姓名:&nbsp;
+        <input type="text" name="s_marathonerName" id="s_marathonerName"/>
+        <a href="javascript:marathonerNameSearch()" class="easyui-linkbutton" iconCls="fa fa-search" plain="true">搜索</a>
+    </div>
+</div>
+</body>
+</html>

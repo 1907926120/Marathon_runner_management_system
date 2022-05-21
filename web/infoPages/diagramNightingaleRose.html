@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ch">
+<head>
+    <meta charset="UTF-8">
+    <title>echarts</title>
+</head>
+<body>
+    <div id="charts2" style="width: 1200px;height:570px;"></div>
+    <script type="text/javascript">
+        // 基于准备好的dom，初始化echarts实例
+        var myChart = echarts.init(document.getElementById('charts2'));
+
+        $.ajax({
+            type: "post",
+            url: "charts",
+            dataType: "json",
+            success: function (data) {
+                // console.log(data);
+                // console.log(data.information.length);
+                var arr1 = new Array(data.information.length);
+                var arr2 = new Array(data.information.length);
+
+                for (i =0; i < arr1.length; i++) {
+                    arr1[i] = data.information[i].nationality;
+                    arr2[i] = data.information[i];
+                    //核心代码 🤩
+                    // [[arr2[i].nationality, arr2[i].count]] = [[arr2[i].count, arr2[i].nationality]];
+
+                }
+                console.log(arr2);
+                console.log(arr2);
+                console.log(arr1);
+                console.log(typeof arr2[0].count+".........."+typeof arr2[0].nationality);
+
+                // var jsonStr2 = JSON.stringify(arr2);
+                // console.log(jsonStr2);
+
+                // 指定图表的配置项和数据
+                option = {
+                    title: {
+                        text: '南丁格尔玫瑰图',
+                        subtext: 'marathoner',
+                        left: 'center'
+                    },
+                    tooltip: {
+                        trigger: 'item',
+                        formatter: '{a} <br/>{b} : {c} ({d}%)'
+                    },
+                    legend: {
+                        left: 'center',
+                        top: 'bottom',
+                        data: arr1
+                    },
+                    toolbox: {
+                        show: true,
+                        feature: {
+                            mark: {show: true},
+                            dataView: {show: true, readOnly: false},
+                            magicType: {
+                                show: true,
+                                type: ['pie', 'funnel']
+                            },
+                            restore: {show: true},
+                            saveAsImage: {show: true}
+                        }
+                    },
+                    series: [
+                        {
+                            name: '半径模式',
+                            type: 'pie',
+                            radius: [20, 110],
+                            center: ['25%', '50%'],
+                            roseType: 'radius',
+                            label: {
+                                show: false
+                            },
+                            emphasis: {
+                                label: {
+                                    show: true
+                                }
+                            },
+                            data:  [
+                                {value: arr2[0].count, name: arr2[0].nationality},
+                                {value: arr2[1].count, name: arr2[1].nationality},
+                                {value: arr2[2].count, name: arr2[2].nationality},
+                                {value: arr2[3].count, name: arr2[3].nationality},
+                                {value: arr2[4].count, name: arr2[4].nationality}
+                            ]
+                        },
+                        {
+                            name: '面积模式',
+                            type: 'pie',
+                            radius: [30, 110],
+                            center: ['75%', '50%'],
+                            roseType: 'area',
+                            data: [
+                                {value: arr2[0].count, name: arr2[0].nationality},
+                                {value: arr2[1].count, name: arr2[1].nationality},
+                                {value: arr2[2].count, name: arr2[2].nationality},
+                                {value: arr2[3].count, name: arr2[3].nationality},
+                                {value: arr2[4].count, name: arr2[4].nationality}
+                            ]
+                        }
+                    ]
+                };
+                // 使用刚指定的配置项和数据显示图表。
+                myChart.setOption(option);
+            }
+        })
+
+    </script>
+</body>
+</html>

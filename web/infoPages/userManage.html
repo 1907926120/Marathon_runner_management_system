@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ch">
+<head>
+    <meta charset="UTF-8">
+    <title>账号/密码（用户）信息</title>
+</head>
+<body>
+<div class="super-theme-example">
+    <div style="height: 510px;">
+        <table class="easyui-datagrid" id="dg31" >
+        </table>
+    </div>
+</div>
+
+<!--表单初始化设置-->
+<style type="text/css">
+    .form-item {
+        margin-bottom: 15px;
+        width: 50%;
+        float: left;
+    }
+    .form-item label {
+        min-width: 72px;
+        display: inline-block;
+    }
+    .form-item input,
+    select {
+        width: 170px;
+    }
+</style>
+<!--不能出现多个script块  bug-->
+<script type="text/javascript">
+    //添加功能需用到url地址
+    var url;
+    $('#dg31').datagrid({
+        url:'user2List',      //关联servlet
+        title:'系统用户信息',
+        fit: true,                       //撑开
+        pagination: true,               //分页
+        fitColumns: true,               //自适应尺寸
+        rownumbers:true,                //带序号
+        toolbar:'#tb31',
+        height: 400,
+        columns: [
+            [{
+                field: 'cb',
+                checkbox:true       //选框
+            },{
+                field: 'id',
+                title: '编号',
+                width: 20,
+                sortable: true
+            }, {
+                field: 'userName',
+                title: '账号',
+                width: 100,
+                align: 'center'
+            }, {
+                field: 'password',
+                title: '密码',
+                width: 100,
+                align: 'center'
+            }]
+        ]
+    });
+    //s_user2UserName/前端属性    user2UserNameSearch/前端方法名   独一无二，不然不能与似页面功能共存
+    function user2UserNameSearch(){
+        $('#dg31').datagrid('load',{
+            userName:$('#s_user2UserName').val()
+        });
+    }
+    function user2Delete() {
+        var selectedRows=$('#dg31').datagrid('getSelections');
+        if (selectedRows.length == 0) {
+            $.messager.alert("系统提示", "请选择要删除的数据！");
+            return;
+        }
+        var strIds = [];
+        for (var i = 0; i < selectedRows.length; i++) {
+            strIds.push(selectedRows[i].id);
+        }
+        var ids = strIds.join(",");
+        $.messager.confirm("系统提示", "您确定要删掉这<font color='#dc143c'>" + selectedRows.length + "</font>条数据吗？", function (r) {
+            if (r) {
+                $.post("user2Delete",{delIds:ids},function (result) {
+                    if (result.success) {
+                        $.messager.alert("系统提示", "您已成功删除<font color='#dc143c'>" + result.delNums + "</font>条数据！");
+                        $('#dg31').datagrid("reload");
+
+                    }else{
+                        $.messager.alert("系统提示" ,"名为<font color='#dc143c'>"+selectedRows[result.errorIndex].userName+"</font>的"+result.errorMsg);
+                    }
+                },"json");
+            }
+        });
+    }
+    function openUser2AddDialog() {
+        $('#dlg31').dialog("open").dialog("setTitle","添加系统用户信息");
+        url = "user2Save";
+    }
+    function openUser2ModifyDialog() {
+        var selectedRows=$('#dg31').datagrid('getSelections');
+        if (selectedRows.length !== 1) {
+            $.messager.alert("系统提示", "请选择一条要编辑的数据！");
+            return;
+        }
+        var row = selectedRows[0];
+        $('#dlg31').dialog("open").dialog("setTitle","编辑系统用户信息");
+        $('#fm31').form("load", row);
+        url="user2Save?id="+row.id;
+    }
+    function closeUser2AddDialog() {
+        $('#dlg31').dialog("close");
+        resetValue();
+    }
+    function saveUser2() {
+        $('#fm31').form("submit",{
+            url:url,
+            onSubmit: function () {
+                return $(this).form("validate");
+            },
+            success: function (result) {
+                if (result.errorMsg) {
+                    $.messager.alert("系统提示", result.errorMsg);
+                    return;
+                } else {
+                    $.messager.alert("系统提示", "操作成功");
+                    resetValue();
+                    $('#dlg31').dialog("close");
+                    $('#dg31').datagrid("reload");
+                }
+            }
+        });
+    }
+    function resetValue() {
+        $('#userName').textbox('setValue',"");
+        $('#password').textbox('setValue',"");
+    }
+</script>
+<div id="tb31">
+    <div>
+        <a href="javascript:openUser2AddDialog()" class="easyui-linkbutton" iconCls="fa fa-plus" plain="true">添加</a>
+        <a href="javascript:openUser2ModifyDialog()" class="easyui-linkbutton" iconCls="fa fa-edit" plain="true">修改</a>
+        <a href="javascript:user2Delete()" class="easyui-linkbutton" iconCls="fa fa-remove" plain="true">删除</a>
+    </div>
+    <div>用户账号:&nbsp;
+        <input type="text" name="s_user2UserName" id="s_user2UserName"/>
+        <a href="javascript:user2UserNameSearch()" class="easyui-linkbutton" iconCls="fa fa-search" plain="true">搜索</a>
+    </div>
+</div>
+<div id="dlg31" class="easyui-dialog" style="width:300px;height: 260px;padding:10px 20px" closed="true" buttons="#dlg31-buttons">
+    <form id="fm31" method="post">
+        <div class="form-item" style="padding-right: 20px">
+            <label for="userName" class="label-top">账号：</label>
+            <input name="userName" id="userName" class="easyui-validatebox easyui-textbox" prompt="请输入用户账号" data-options="required:true,validType:'length[1,9]'"/>
+        </div>
+
+        <div class="form-item">
+            <label for="password" class="label-top">密码：</label>
+            <input name="password" id="password" class="easyui-validatebox easyui-textbox" prompt="请输入用户密码" data-options="required:true,validType:'length[1,16]'"/>
+        </div>
+    </form>
+</div>
+<div id="dlg31-buttons">
+    <a href="javascript:saveUser2()" class="easyui-linkbutton" iconCls="fa fa-check">保存</a>
+    <a href="javascript:closeUser2AddDialog()" class="easyui-linkbutton" iconCls="fa fa-close">关闭</a>
+</div>
+</body>
+</html>

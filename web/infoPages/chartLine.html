@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ch">
+<head>
+    <meta charset="UTF-8">
+    <title>echarts</title>
+</head>
+<body>
+    <div id="charts1" style="width: 1200px;height:620px;" ></div>
+    <script type="text/javascript">
+        // 基于准备好的dom，初始化echarts实例
+        var myChart = echarts.init(document.getElementById('charts1'));
+
+        $.ajax({
+            type: "post",
+            url: "charts",
+            dataType:"json",
+            success: function (data) {
+                // console.log(data);
+                // console.log(data.information.length);
+                var arr1 = new Array(data.information.length);
+                var arr2 = new Array(data.information.length);
+                for (i =0; i < arr1.length; i++) {
+                    arr1[i] = data.information[i].nationality;
+                    arr2[i] = data.information[i].count;
+                    // console.log(arr1)
+                }
+                // 指定图表的配置项和数据
+                option = {
+                    title: {
+                        text: '折线图',
+                        subtext: 'marathoner',
+                        left: 'center'
+                    },
+                    xAxis: {
+                        type: 'category',
+                        boundaryGap: false,
+                        data: arr1
+                    },
+                    yAxis: {
+                        type: 'value'
+                    },
+                    series: [{
+                        data: arr2,
+                        type: 'line',
+                        areaStyle: {}
+                    }]
+                };
+                // 使用刚指定的配置项和数据显示图表。
+                myChart.setOption(option);
+            }
+        })
+
+    </script>
+</body>
+</html>
